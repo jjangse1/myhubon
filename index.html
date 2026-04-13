@@ -13,7 +13,7 @@
 #video{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:0.88}
 #canvas{position:fixed;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;z-index:10}
 
-/* MYHUBON words */
+/* 척 츄 words */
 .word{
 position:fixed;left:50%;top:38%;
 transform:translate(-50%,-50%) scale(0.3);
@@ -135,6 +135,18 @@ transition:color 0.2s;
 #pmsg{color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;font-family:monospace;display:none;text-align:center;max-width:300px;line-height:2.2}
 #btn{margin-top:6px;padding:15px 48px;border:1.5px solid rgba(255,255,255,0.18);background:transparent;color:#fff;font-size:13px;letter-spacing:5px;font-family:monospace;cursor:pointer;border-radius:2px}
 #btn:active{background:rgba(255,255,255,0.06)}
+
+/* music button */
+#musicBtn{
+position:fixed;top:20px;left:50%;transform:translateX(-50%);
+background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.15);
+color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:3px;
+padding:7px 16px;border-radius:20px;cursor:pointer;z-index:100;
+font-family:monospace;transition:all 0.2s;display:none;
+-webkit-tap-highlight-color:transparent;
+}
+#musicBtn.playing{color:#ff3d7f;border-color:rgba(255,61,127,0.4)}
+#musicBtn:active{background:rgba(255,255,255,0.08)}
 </style>
 
 </head>
@@ -145,14 +157,14 @@ transition:color 0.2s;
 
 <div id="flash"></div>
 
-<div id="wFist" class="word">MYHUBON</div>
-<div id="wOpen" class="word">마이허브온</div>
+<div id="wFist" class="word">BUY</div>
+<div id="wOpen" class="word">SELL</div>
 
 <!-- Promo card -->
 
 <div id="promoCard">
   <div class="promo-inner">
-    <div class="promo-tag">MYHUBON.COM</div>
+    <div class="promo-tag">MYHUBON</div>
     <div class="promo-main" id="promoMain"></div>
     <div class="promo-sub" id="promoSub"></div>
     <div class="promo-url">WWW.MYHUBON.COM</div>
@@ -163,13 +175,17 @@ transition:color 0.2s;
 <div class="dot" id="dL"></div>
 <div class="dot" id="dR"></div>
 <div id="gst">READY</div>
+<button id="musicBtn" onclick="toggleMusic()">▶ MUSIC</button>
+<audio id="bgm" loop>
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
 
 <div id="ss">
-  <h1>마이허브온</h1>
+  <h1>MUHUBON.COM</h1>
   <div class="ss-sub">HAND GESTURE DETECTOR</div>
   <div class="ss-hints">
-    <div class="ss-hint fh"><span class="ico">✊</span><span class="lbl">FIST</span><span class="kw">척</span></div>
-    <div class="ss-hint oh"><span class="ico">🖐️</span><span class="lbl">OPEN</span><span class="kw">츄</span></div>
+    <div class="ss-hint fh"><span class="ico">✊</span><span class="lbl">FIST</span><span class="kw">Buy</span></div>
+		    <div class="ss-hint oh"><span class="ico">🖐️</span><span class="lbl">OPEN</span><span class="kw">Sell</span></div>
     <div class="ss-hint bh"><span class="ico">🤜🤛</span><span class="lbl">BOTH FISTS</span><span class="kw">MYHUBON 광고!</span></div>
   </div>
   <div id="prog"><div id="pfill"></div></div>
@@ -288,6 +304,20 @@ const dL     = document.getElementById('dL');
 const dR     = document.getElementById('dR');
 const pfill  = document.getElementById('pfill');
 const pmsg   = document.getElementById('pmsg');
+const bgm    = document.getElementById('bgm');
+const musicBtn = document.getElementById('musicBtn');
+
+function toggleMusic() {
+  if (bgm.paused) {
+    bgm.play();
+    musicBtn.textContent = '⏸ MUSIC';
+    musicBtn.classList.add('playing');
+  } else {
+    bgm.pause();
+    musicBtn.textContent = '▶ MUSIC';
+    musicBtn.classList.remove('playing');
+  }
+}
 const ctx    = canvas.getContext('2d');
 
 function pop(el,color){
@@ -378,10 +408,10 @@ function onResults(results) {
       if(g !== prevG){
         if(g==='fist'){
           pop(wFist,'#ff3d7f');
-          gstEl.textContent='✊  척!'; gstEl.className='';
+          gstEl.textContent='✊  Buy!'; gstEl.className='';
         } else if(g==='open'){
           pop(wOpen,'#00d4ff');
-          gstEl.textContent='🖐  츄!'; gstEl.className='';
+          gstEl.textContent='🖐  Sell!'; gstEl.className='';
         }
       }
       if(side==='Left') dL.className='dot'+(g==='fist'?' on':'');
@@ -426,6 +456,17 @@ async function go(){
     await new Promise(r=>setTimeout(r,350));
     document.getElementById('ss').style.display='none';
     gstEl.textContent='손을 화면에 보여주세요';
+
+    // 음악 자동 시작
+    musicBtn.style.display = 'block';
+    try {
+      await bgm.play();
+      musicBtn.textContent = '⏸ MUSIC';
+      musicBtn.classList.add('playing');
+    } catch(e) {
+      // autoplay blocked — user can tap manually
+      musicBtn.textContent = '▶ MUSIC';
+    }
 
   }catch(e){
     setP(0,'❌ '+e.message);
