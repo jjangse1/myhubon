@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MYHUBON</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Bebas+Neue&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;width:100vw;height:100dvh;overflow:hidden;font-family:'Black Han Sans',sans-serif}
+
+#video{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:0.88}
+#canvas{position:fixed;top:0;left:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none;z-index:10}
+
+/* MYHUBON words */
+.word{
+position:fixed;left:50%;top:38%;
+transform:translate(-50%,-50%) scale(0.3);
+font-size:clamp(100px,28vw,240px);
+opacity:0;pointer-events:none;z-index:50;
+text-shadow:0 0 60px currentColor,6px 6px 0 rgba(0,0,0,0.9);
+}
+.word.pop{animation:wordPop 0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards}
+#wFist{color:#ff3d7f}
+#wOpen{color:#00d4ff}
+@keyframes wordPop{
+0%  {opacity:0;transform:translate(-50%,-50%) scale(0.2) rotate(-8deg);filter:blur(10px)}
+45% {opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(2deg);filter:blur(0)}
+65% {transform:translate(-50%,-50%) scale(0.93)}
+80% {opacity:1;transform:translate(-50%,-50%) scale(1.0)}
+100%{opacity:0;transform:translate(-50%,-50%) scale(1.4) rotate(4deg);filter:blur(8px)}
+}
+
+/* PROMO card */
+#promoCard{
+position:fixed;left:50%;bottom:14%;
+transform:translateX(-50%) translateY(40px);
+width:min(88vw, 420px);
+opacity:0;pointer-events:none;z-index:60;
+text-align:center;
+}
+#promoCard.show{animation:promoIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards}
+#promoCard.hide{animation:promoOut 0.4s ease-in forwards}
+
+@keyframes promoIn{
+0%  {opacity:0;transform:translateX(-50%) translateY(50px) scale(0.85)}
+100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+@keyframes promoOut{
+0%  {opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(0.9)}
+}
+
+.promo-inner{
+background:linear-gradient(135deg,rgba(0,0,0,0.92),rgba(20,0,40,0.92));
+border:1px solid rgba(255,61,127,0.5);
+border-radius:6px;
+padding:20px 24px 16px;
+box-shadow:0 0 40px rgba(255,61,127,0.2), inset 0 0 30px rgba(255,61,127,0.04);
+}
+
+.promo-tag{
+display:inline-block;
+background:linear-gradient(90deg,#ff3d7f,#ff6b35);
+color:#fff;font-size:10px;letter-spacing:3px;
+padding:3px 10px;border-radius:2px;margin-bottom:10px;
+font-family:‘Bebas Neue’,monospace;
+}
+
+.promo-main{
+color:#fff;
+font-size:clamp(18px,5vw,26px);
+line-height:1.35;
+letter-spacing:-0.5px;
+margin-bottom:8px;
+word-break:keep-all;
+}
+.promo-main em{
+font-style:normal;
+background:linear-gradient(90deg,#ff3d7f,#ff6b35);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+.promo-sub{
+color:rgba(255,255,255,0.45);
+font-size:11px;letter-spacing:2px;
+font-family:monospace;margin-bottom:12px;
+}
+
+.promo-url{
+display:inline-block;
+color:#ff3d7f;font-size:13px;letter-spacing:3px;
+font-family:‘Bebas Neue’,monospace;
+border-bottom:1px solid rgba(255,61,127,0.4);
+padding-bottom:2px;
+}
+
+/* progress dots */
+.promo-dots{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.pdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);transition:background 0.3s}
+.pdot.active{background:#ff3d7f}
+
+/* flash */
+#flash{position:fixed;inset:0;opacity:0;pointer-events:none;z-index:40;mix-blend-mode:screen}
+
+/* gesture status */
+#gst{
+position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:3px;
+font-family:monospace;z-index:100;white-space:nowrap;
+transition:color 0.2s;
+}
+#gst.both{color:#ff3d7f}
+
+/* eye dots */
+.dot{position:fixed;width:14px;height:14px;border-radius:50%;top:22px;z-index:100;opacity:0.3;transition:opacity .1s,transform .12s}
+#dL{left:20px;background:#ff3d7f;box-shadow:0 0 10px #ff3d7f}
+#dR{right:20px;background:#ff3d7f;box-shadow:0 0 10px #ff3d7f}
+.dot.on{opacity:1;transform:scale(1.8)}
+
+/* start screen */
+#ss{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:200}
+#ss h1{font-size:clamp(64px,20vw,120px);background:linear-gradient(135deg,#ff3d7f,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-2px}
+.ss-sub{color:rgba(255,255,255,0.35);font-size:11px;letter-spacing:5px;font-family:monospace}
+.ss-hints{display:flex;gap:36px;margin:4px 0}
+.ss-hint{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ss-hint .ico{font-size:32px}
+.ss-hint .lbl{color:rgba(255,255,255,0.25);font-size:9px;letter-spacing:3px;font-family:monospace}
+.ss-hint .kw{font-size:20px}
+.fh .kw{color:#ff3d7f}.oh .kw{color:#00d4ff}.bh .kw{color:#ff6b35;font-size:14px;letter-spacing:1px}
+
+#prog{width:240px;height:2px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;display:none}
+#pfill{height:100%;width:0%;background:linear-gradient(90deg,#ff3d7f,#ff6b35);transition:width .4s}
+#pmsg{color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;font-family:monospace;display:none;text-align:center;max-width:300px;line-height:2.2}
+#btn{margin-top:6px;padding:15px 48px;border:1.5px solid rgba(255,255,255,0.18);background:transparent;color:#fff;font-size:13px;letter-spacing:5px;font-family:monospace;cursor:pointer;border-radius:2px}
+#btn:active{background:rgba(255,255,255,0.06)}
+</style>
+
+</head>
+<body>
+
+<video id="video" autoplay muted playsinline></video>
+<canvas id="canvas"></canvas>
+
+<div id="flash"></div>
+
+<div id="wFist" class="word">MYHUBON</div>
+<div id="wOpen" class="word">마이허브온</div>
+
+<!-- Promo card -->
+
+<div id="promoCard">
+  <div class="promo-inner">
+    <div class="promo-tag">MYHUBON.COM</div>
+    <div class="promo-main" id="promoMain"></div>
+    <div class="promo-sub" id="promoSub"></div>
+    <div class="promo-url">WWW.MYHUBON.COM</div>
+    <div class="promo-dots" id="promoDots"></div>
+  </div>
+</div>
+
+<div class="dot" id="dL"></div>
+<div class="dot" id="dR"></div>
+<div id="gst">READY</div>
+
+<div id="ss">
+  <h1>마이허브온</h1>
+  <div class="ss-sub">HAND GESTURE DETECTOR</div>
+  <div class="ss-hints">
+    <div class="ss-hint fh"><span class="ico">✊</span><span class="lbl">FIST</span><span class="kw">척</span></div>
+    <div class="ss-hint oh"><span class="ico">🖐️</span><span class="lbl">OPEN</span><span class="kw">츄</span></div>
+    <div class="ss-hint bh"><span class="ico">🤜🤛</span><span class="lbl">BOTH FISTS</span><span class="kw">MYHUBON 광고!</span></div>
+  </div>
+  <div id="prog"><div id="pfill"></div></div>
+  <div id="pmsg"></div>
+  <button id="btn" onclick="go()">START →</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js" crossorigin="anonymous"></script>
+
+<script>
+// ── Promo messages ─────────────────────────────────────────
+const PROMOS = [
+  {
+    main: '반도체 부품,\n지금 <em>바로</em> 구한다',
+    sub: 'SEMICONDUCTOR PARTS · INSTANT SOURCING'
+  },
+  {
+    main: '전 세계 장비,\n<em>한 곳</em>에서 끝낸다',
+    sub: 'GLOBAL EQUIPMENT · ONE PLATFORM'
+  },
+  {
+    main: '재고 걱정?\n<em>MYHUBON</em>이 해결한다',
+    sub: 'ZERO INVENTORY STRESS · REAL-TIME STOCK'
+  },
+  {
+    main: '반도체 산업의\n<em>새로운 기준</em>',
+    sub: 'THE NEW STANDARD FOR SEMICONDUCTOR TRADE'
+  },
+  {
+    main: '빠르게. 정확하게.\n<em>압도적으로.</em>',
+    sub: 'FAST · PRECISE · DOMINANT'
+  },
+  {
+    main: '부품 하나도\n<em>타협하지 않는다</em>',
+    sub: 'NO COMPROMISE ON EVERY COMPONENT'
+  },
+  {
+    main: '공급망의 판을\n<em>바꾼다</em>',
+    sub: 'DISRUPTING THE SUPPLY CHAIN'
+  },
+];
+
+let promoIdx = 0;
+let promoVisible = false;
+let promoTimer = null;
+
+// Build dots
+const dotsEl = document.getElementById('promoDots');
+PROMOS.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className = 'pdot' + (i===0?' active':'');
+  d.id = 'pd'+i;
+  dotsEl.appendChild(d);
+});
+
+function showPromo() {
+  const p = PROMOS[promoIdx];
+  document.getElementById('promoMain').innerHTML = p.main.replace(/\n/g,'<br>');
+  document.getElementById('promoSub').textContent = p.sub;
+
+  // Update dots
+  document.querySelectorAll('.pdot').forEach((d,i) => {
+    d.className = 'pdot' + (i===promoIdx?' active':'');
+  });
+
+  const card = document.getElementById('promoCard');
+  card.classList.remove('show','hide');
+  void card.offsetWidth;
+  card.classList.add('show');
+  promoVisible = true;
+
+  // Auto hide after 3s
+  if (promoTimer) clearTimeout(promoTimer);
+  promoTimer = setTimeout(() => {
+    card.classList.remove('show');
+    card.classList.add('hide');
+    promoVisible = false;
+  }, 3000);
+
+  // Next promo
+  promoIdx = (promoIdx + 1) % PROMOS.length;
+}
+
+// ── Gesture ────────────────────────────────────────────────
+const TIPS=[4,8,12,16,20], PIPS=[3,6,10,14,18];
+
+function isFingerOpen(lm, tip, pip) {
+  const wrist = lm[0];
+  const tD = Math.hypot(lm[tip].x-wrist.x, lm[tip].y-wrist.y);
+  const pD = Math.hypot(lm[pip].x-wrist.x, lm[pip].y-wrist.y);
+  return tD > pD * 1.1;
+}
+
+function classifyHand(lm) {
+  let open = 0;
+  for(let i=1;i<=4;i++) if(isFingerOpen(lm,TIPS[i],PIPS[i])) open++;
+  const thumbOpen = Math.hypot(lm[4].x-lm[5].x,lm[4].y-lm[5].y) >
+                    Math.hypot(lm[3].x-lm[5].x,lm[3].y-lm[5].y);
+  if(thumbOpen) open++;
+  if(open>=4) return 'open';
+  if(open<=1) return 'fist';
+  return 'mid';
+}
+
+const video  = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const flash  = document.getElementById('flash');
+const wFist  = document.getElementById('wFist');
+const wOpen  = document.getElementById('wOpen');
+const gstEl  = document.getElementById('gst');
+const dL     = document.getElementById('dL');
+const dR     = document.getElementById('dR');
+const pfill  = document.getElementById('pfill');
+const pmsg   = document.getElementById('pmsg');
+const ctx    = canvas.getContext('2d');
+
+function pop(el,color){
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  flash.style.background=color; flash.style.opacity='0.2';
+  setTimeout(()=>flash.style.opacity='0',130);
+}
+function setP(pct,msg){
+  document.getElementById('prog').style.display='block';
+  pmsg.style.display='block'; pfill.style.width=pct+'%'; pmsg.textContent=msg;
+}
+
+// State machine
+let handStates = {}; // handedness → gesture
+let stableCounts = {};
+let prevGestures = {};
+const STABLE = 3;
+
+// Both-fist detection
+let bothFistFrames = 0;
+let bothFistTriggered = false;
+const BOTH_FIST_TH = 4;
+
+function onResults(results) {
+  canvas.width  = video.videoWidth  || canvas.offsetWidth;
+  canvas.height = video.videoHeight || canvas.offsetHeight;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(!results.multiHandLandmarks || results.multiHandLandmarks.length===0){
+    gstEl.textContent='손을 화면에 보여주세요';
+    gstEl.className='';
+    handStates={};
+    dL.className='dot'; dR.className='dot';
+    bothFistFrames=0; bothFistTriggered=false;
+    return;
+  }
+
+  // Draw skeletons
+  for(let i=0;i<results.multiHandLandmarks.length;i++){
+    drawConnectors(ctx,results.multiHandLandmarks[i],HAND_CONNECTIONS,{color:'rgba(255,255,255,0.2)',lineWidth:2});
+    drawLandmarks(ctx,results.multiHandLandmarks[i],{color:'rgba(255,100,100,0.5)',lineWidth:1,radius:2});
+  }
+
+  // Classify each hand
+  const currentStates = {};
+  for(let i=0;i<results.multiHandLandmarks.length;i++){
+    const lm   = results.multiHandLandmarks[i];
+    const side = results.multiHandedness[i].label; // 'Left' or 'Right'
+    const g    = classifyHand(lm);
+
+    if(g === prevGestures[side]){
+      stableCounts[side] = (stableCounts[side]||0) + 1;
+    } else {
+      prevGestures[side] = g;
+      stableCounts[side] = 0;
+    }
+
+    if(stableCounts[side] >= STABLE) currentStates[side] = g;
+    else currentStates[side] = handStates[side] || 'mid';
+  }
+
+  // Single hand gestures
+  const hands = Object.keys(currentStates);
+  const prev  = handStates;
+
+  // Both fists check
+  const leftG  = currentStates['Left']  || currentStates['Right'];
+  const rightG = currentStates['Right'] || currentStates['Left'];
+  const bothFist = hands.length >= 2 &&
+    Object.values(currentStates).every(g => g === 'fist');
+
+  if(bothFist){
+    bothFistFrames++;
+    gstEl.textContent='🤜🤛  MYHUBON!';
+    gstEl.className='both';
+    dL.className='dot on'; dR.className='dot on';
+
+    if(bothFistFrames === BOTH_FIST_TH && !bothFistTriggered){
+      bothFistTriggered = true;
+      showPromo();
+    }
+  } else {
+    bothFistFrames=0; bothFistTriggered=false;
+
+    // Single hand
+    for(const [side, g] of Object.entries(currentStates)){
+      const prevG = prev[side];
+      if(g !== prevG){
+        if(g==='fist'){
+          pop(wFist,'#ff3d7f');
+          gstEl.textContent='✊  척!'; gstEl.className='';
+        } else if(g==='open'){
+          pop(wOpen,'#00d4ff');
+          gstEl.textContent='🖐  츄!'; gstEl.className='';
+        }
+      }
+      if(side==='Left') dL.className='dot'+(g==='fist'?' on':'');
+      if(side==='Right') dR.className='dot'+(g==='fist'?' on':'');
+    }
+
+    if(hands.length===0){
+      gstEl.textContent='손을 화면에 보여주세요';
+      gstEl.className='';
+    }
+  }
+
+  handStates = {...currentStates};
+}
+
+async function go(){
+  document.getElementById('btn').style.display='none';
+  setP(10,'카메라 초기화...');
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false
+    });
+    video.srcObject=stream;
+    await new Promise(r=>{video.onloadedmetadata=r});
+    video.play();
+    setP(40,'MediaPipe Hands 로딩...');
+
+    const hands=new Hands({
+      locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${f}`
+    });
+    hands.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:0.6,minTrackingConfidence:0.5});
+    hands.onResults(onResults);
+
+    setP(80,'초기화 중...');
+    const camera=new Camera(video,{
+      onFrame:async()=>{await hands.send({image:video})},
+      width:1280,height:720
+    });
+    await camera.start();
+
+    setP(100,'✓ 준비!');
+    await new Promise(r=>setTimeout(r,350));
+    document.getElementById('ss').style.display='none';
+    gstEl.textContent='손을 화면에 보여주세요';
+
+  }catch(e){
+    setP(0,'❌ '+e.message);
+    document.getElementById('btn').style.display='block';
+    console.error(e);
+  }
+}
+</script>
+
+</body>
+</html>
